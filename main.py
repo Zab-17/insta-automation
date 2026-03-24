@@ -5,7 +5,6 @@ import sys
 
 from src.config import get_config
 from src.poster import find_pending_posts, post_content, move_to_posted
-from src.scheduler import calculate_post_times, should_post_now
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,52 +18,49 @@ logger = logging.getLogger(__name__)
 
 PENDING_DIR = "content/pending"
 POSTED_DIR = "content/posted"
+POLL_INTERVAL = 30  # seconds between folder checks
 
 
-def run_once(config: dict) -> None:
-    """Check for pending posts and publish the next one."""
+def post_all_pending(config: dict) -> int:
+    """Post every pending item. Returns count of successful posts."""
     posts = find_pending_posts(PENDING_DIR)
     if not posts:
-        logger.info("No pending posts found.")
-        return
+        return 0
 
-    post = posts[0]
-    logger.info(f"Processing: {post['folder_name']}")
+    posted = 0
+    for post in posts:
+        logger.info(f"Processing: {post['folder_name']}")
+        try:
+            media_id = post_content(post, config)
+            move_to_posted(post["folder_path"], POSTED_DIR)
+            logger.info(f"Posted: {post['folder_name']} (ID: {media_id})")
+            posted += 1
+        except Exception as e:
+            logger.error(f"Failed: {post['folder_name']}: {e}")
 
-    try:
-        media_id = post_content(post, config)
-        move_to_posted(post["folder_path"], POSTED_DIR)
-        logger.info(f"Successfully posted: {post['folder_name']} (ID: {media_id})")
-    except Exception as e:
-        logger.error(f"Failed to post {post['folder_name']}: {e}")
+    return posted
 
 
-def run_scheduler(config: dict) -> None:
-    """Run the scheduler loop — posts at scheduled times throughout the day."""
-    post_times = calculate_post_times(config["posts_per_day"])
-    logger.info(f"Scheduled post times for today: {post_times}")
-
-    posted_times = set()
-
+def watch(config: dict) -> None:
+    """Poll the pending folder and post anything that appears."""
+    logger.info(f"Watching {PENDING_DIR}/ every {POLL_INTERVAL}s — drop folders to auto-post")
     while True:
-        for time_str in post_times:
-            if time_str not in posted_times and should_post_now([time_str]):
-                run_once(config)
-                posted_times.add(time_str)
-
-        time.sleep(60)
+        count = post_all_pending(config)
+        if count:
+            logger.info(f"Batch done — {count} posted")
+        time.sleep(POLL_INTERVAL)
 
 
 def main():
     config = get_config()
     logger.info("Instagram Automation starting...")
     logger.info("Account ID: ****" + config['instagram_account_id'][-4:])
-    logger.info(f"Posts per day: {config['posts_per_day']}")
 
     if "--once" in sys.argv:
-        run_once(config)
+        n = post_all_pending(config)
+        logger.info(f"Done — {n} posted" if n else "No pending posts found.")
     else:
-        run_scheduler(config)
+        watch(config)
 
 
 if __name__ == "__main__":
