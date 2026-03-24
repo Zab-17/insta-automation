@@ -5,3 +5,7 @@ __pycache__/
 content/pending/*/
 content/posted/*/
 automation.log
+firebase-debug.log
+.DS_Store
+.claude/
+assets/

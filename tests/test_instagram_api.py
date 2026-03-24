@@ -11,7 +11,7 @@ def test_create_media_container_returns_id(mock_post):
     mock_post.return_value = mock_response
 
     result = create_media_container(
-        account_id="17841437245480808",
+        account_id="test_account_123",
         access_token="token123",
         video_url="https://example.com/video.mp4",
         caption="Test caption #hashtag",
@@ -20,7 +20,7 @@ def test_create_media_container_returns_id(mock_post):
     assert result == "container_123"
     mock_post.assert_called_once()
     call_kwargs = mock_post.call_args
-    assert "17841437245480808" in call_kwargs[0][0]
+    assert "test_account_123" in call_kwargs[0][0]
 
 
 @patch("src.instagram_api.requests.get")
@@ -46,7 +46,7 @@ def test_publish_media_returns_id(mock_post):
     mock_post.return_value = mock_response
 
     result = publish_media(
-        account_id="17841437245480808",
+        account_id="test_account_123",
         access_token="token123",
         container_id="container_123",
     )

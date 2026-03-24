@@ -38,6 +38,7 @@ if __name__ == "__main__":
         app_id=config["fb_app_id"],
         app_secret=config["fb_app_secret"],
     )
-    print(f"\nNew token: {result['access_token']}")
+    print(f"\nToken refreshed successfully!")
     print(f"Expires in: {result['expires_in'] // 86400} days")
+    print(f"New token (first 10 chars): {result['access_token'][:10]}...")
     print("\nUpdate your .env file with the new token!")

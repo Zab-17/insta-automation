@@ -58,7 +58,7 @@ def run_scheduler(config: dict) -> None:
 def main():
     config = get_config()
     logger.info("Instagram Automation starting...")
-    logger.info(f"Account ID: {config['instagram_account_id']}")
+    logger.info("Account ID: ****" + config['instagram_account_id'][-4:])
     logger.info(f"Posts per day: {config['posts_per_day']}")
 
     if "--once" in sys.argv:
