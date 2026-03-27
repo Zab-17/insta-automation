@@ -9,3 +9,4 @@ firebase-debug.log
 .DS_Store
 .claude/
 assets/
+.vercel
